@@ -155,7 +155,7 @@ Future<void> editNote(int id, String title, String content) async {
           itemCount: notes.length,
           itemBuilder: (context, index) {
             final note = notes[index];
-            final randomRedAccent = Colors.green[_random.nextInt(8) * 100 + 100]; // Generate a random red accent
+            final randomRedAccent = Colors.red[_random.nextInt(8) * 100 + 100]; // Generate a random red accent
             return Card(
               elevation: 5,
               color: randomRedAccent,

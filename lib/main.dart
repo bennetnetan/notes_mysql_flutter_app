@@ -156,63 +156,67 @@ Future<void> editNote(int id, String title, String content) async {
           itemBuilder: (context, index) {
             final note = notes[index];
             final randomRedAccent = Colors.red[_random.nextInt(8) * 100 + 100]; // Generate a random red accent
-            return Card(
-              elevation: 5,
-              color: randomRedAccent,
-              child: ListTile(
-                title: Text(note['title']),
-                subtitle: Text(note['content']),
-                style: ListTileStyle.drawer,
-                trailing: SizedBox(
-                  width: 100,
-                  child: Row(
-                    children: [
-                      // Edit button
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () {
-                          // Open a dialog to edit the note
-                          showDialog(
-                            context: context,
-                            builder: (context) {
-                              final titleController = TextEditingController(text: note['title']);
-                              final contentController = TextEditingController(text: note['content']);
-                              return AlertDialog(
-                                title: Text('Edit Note'),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    TextField(
-                                      decoration: InputDecoration(labelText: 'Title'),
-                                      controller: titleController,
-                                    ),
-                                    TextField(
-                                      decoration: InputDecoration(labelText: 'Content'),
-                                      controller: contentController,
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Card(
+                elevation: 5,
+                color: randomRedAccent,
+                child: ListTile(
+                  title: Text(note['title']),
+                  subtitle: Text(note['content']),
+                  style: ListTileStyle.drawer,
+                  trailing: SizedBox(
+                    width: 100,
+                    child: Row(
+                      children: [
+                        // Edit button
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () {
+                            // Open a dialog to edit the note
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                final titleController = TextEditingController(text: note['title']);
+                                final contentController = TextEditingController(text: note['content']);
+                                return AlertDialog(
+                                  title: Text('Edit Note'),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextField(
+                                        decoration: InputDecoration(labelText: 'Title'),
+                                        controller: titleController,
+                                      ),
+                                      TextField(
+                                        decoration: InputDecoration(labelText: 'Content'),
+                                        controller: contentController,
+                                        maxLines: 4,
+                                      ),
+                                    ],
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        editNote(note['id'], titleController.text, contentController.text);
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text('Save'),
                                     ),
                                   ],
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      editNote(note['id'], titleController.text, contentController.text);
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Text('Save'),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () {
-                          deleteNote(note['id'].toString());
-                        },
-                      ),
-                    ],
+                                );
+                              },
+                            );
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            deleteNote(note['id'].toString());
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -240,6 +244,7 @@ Future<void> editNote(int id, String title, String content) async {
                     TextField(
                       decoration: InputDecoration(labelText: 'Content'),
                       controller: contentController,
+                      maxLines: 4,
                     ),
                   ],
                 ),

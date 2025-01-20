@@ -47,16 +47,73 @@ class _NotesListScreenState extends State<NotesListScreen> {
       body: {'title': title, 'content': content},
     );
     if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Note added successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
       fetchNotes(); // Refresh the list after adding
     } else {
       throw Exception('Failed to add note');
     }
   }
 
+  // Edit a note
+Future<void> editNote(int id, String title, String content) async {
+  final url = Uri.parse('http://10.0.2.2/notes_appp/index.php');
+  
+  // Prepare data as a Map (form-encoded)
+  final data = {
+    'id': id.toString(),
+    'title': title,
+    'content': content,
+  };
+
+  // Send the PUT request with the form-encoded data and appropriate headers
+  final response = await http.put(
+    url,
+    // headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: data,  // Use the form-encoded data
+  );
+
+  print('Sending data: ${data}');
+  print('Response status code: ${response.statusCode}');
+  print('Response body: ${response.body}');
+
+  // Handle the response
+  if (response.statusCode == 200) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Note edited successfully'),
+        backgroundColor: Colors.green,
+      ),
+    );
+    fetchNotes(); // Refresh the list after editing
+  } else {
+    // Show an error snackbar if the update fails
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to edit note'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
+
+
+
   // Delete a note
   Future<void> deleteNote(String id) async {
-    final response = await http.delete(Uri.parse('$apiUrl?id=$id'));
+    final url = Uri.parse('http://10.0.2.2/notes_appp/index.php');
+    final response = await http.delete(url, body: {'id': id});
     if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Deleted note successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
       fetchNotes(); // Refresh the list after deleting
     } else {
       // show a snackbar
@@ -79,21 +136,73 @@ class _NotesListScreenState extends State<NotesListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Notes')),
-      body: ListView.builder(
-        itemCount: notes.length,
-        itemBuilder: (context, index) {
-          final note = notes[index];
-          return ListTile(
-            title: Text(note['title']),
-            subtitle: Text(note['content']),
-            trailing: IconButton(
-              icon: Icon(Icons.delete),
-              onPressed: () {
-                deleteNote(note['id']);
-              },
-            ),
-          );
-        },
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await fetchNotes();
+          return;
+          },
+        child: ListView.builder(
+          itemCount: notes.length,
+          itemBuilder: (context, index) {
+            final note = notes[index];
+            return ListTile(
+              title: Text(note['title']),
+              subtitle: Text(note['content']),
+              trailing: SizedBox(
+                width: 100,
+                child: Row(
+                  children: [
+                    // Edit button
+                    IconButton(
+                      icon: Icon(Icons.edit),
+                      onPressed: () {
+                        // Open a dialog to edit the note
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            final titleController = TextEditingController(text: note['title']);
+                            final contentController = TextEditingController(text: note['content']);
+                            return AlertDialog(
+                              title: Text('Edit Note'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  TextField(
+                                    decoration: InputDecoration(labelText: 'Title'),
+                                    controller: titleController,
+                                  ),
+                                  TextField(
+                                    decoration: InputDecoration(labelText: 'Content'),
+                                    controller: contentController,
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    editNote(note['id'], titleController.text, contentController.text);
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text('Save'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete),
+                      onPressed: () {
+                        deleteNote(note['id'].toString());
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

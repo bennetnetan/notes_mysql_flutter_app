@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
       title: 'Notes App',
       theme: ThemeData(primarySwatch: Colors.red),
       home: NotesListScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

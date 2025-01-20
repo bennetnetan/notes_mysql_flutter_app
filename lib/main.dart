@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -11,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Notes App',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(primarySwatch: Colors.red),
       home: NotesListScreen(),
     );
   }
@@ -23,6 +25,8 @@ class NotesListScreen extends StatefulWidget {
 }
 
 class _NotesListScreenState extends State<NotesListScreen> {
+  // Create a Random instance
+  final _random = Random();
   List<dynamic> notes = [];
 
   // URL of the API
@@ -77,9 +81,11 @@ Future<void> editNote(int id, String title, String content) async {
     body: data,  // Use the form-encoded data
   );
 
-  print('Sending data: ${data}');
-  print('Response status code: ${response.statusCode}');
-  print('Response body: ${response.body}');
+  if (kDebugMode) {
+    print('Sending data: ${data}');
+    print('Response status code: ${response.statusCode}');
+    print('Response body: ${response.body}');
+  }
 
   // Handle the response
   if (response.statusCode == 200) {
@@ -135,7 +141,11 @@ Future<void> editNote(int id, String title, String content) async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Notes')),
+      appBar: AppBar(
+        title: Text('Notes'),
+        // add background color
+        backgroundColor: Colors.redAccent,
+        ),
       body: RefreshIndicator(
         onRefresh: () async {
           await fetchNotes();
@@ -145,59 +155,65 @@ Future<void> editNote(int id, String title, String content) async {
           itemCount: notes.length,
           itemBuilder: (context, index) {
             final note = notes[index];
-            return ListTile(
-              title: Text(note['title']),
-              subtitle: Text(note['content']),
-              trailing: SizedBox(
-                width: 100,
-                child: Row(
-                  children: [
-                    // Edit button
-                    IconButton(
-                      icon: Icon(Icons.edit),
-                      onPressed: () {
-                        // Open a dialog to edit the note
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            final titleController = TextEditingController(text: note['title']);
-                            final contentController = TextEditingController(text: note['content']);
-                            return AlertDialog(
-                              title: Text('Edit Note'),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  TextField(
-                                    decoration: InputDecoration(labelText: 'Title'),
-                                    controller: titleController,
-                                  ),
-                                  TextField(
-                                    decoration: InputDecoration(labelText: 'Content'),
-                                    controller: contentController,
+            final randomRedAccent = Colors.green[_random.nextInt(8) * 100 + 100]; // Generate a random red accent
+            return Card(
+              elevation: 5,
+              color: randomRedAccent,
+              child: ListTile(
+                title: Text(note['title']),
+                subtitle: Text(note['content']),
+                style: ListTileStyle.drawer,
+                trailing: SizedBox(
+                  width: 100,
+                  child: Row(
+                    children: [
+                      // Edit button
+                      IconButton(
+                        icon: Icon(Icons.edit),
+                        onPressed: () {
+                          // Open a dialog to edit the note
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              final titleController = TextEditingController(text: note['title']);
+                              final contentController = TextEditingController(text: note['content']);
+                              return AlertDialog(
+                                title: Text('Edit Note'),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    TextField(
+                                      decoration: InputDecoration(labelText: 'Title'),
+                                      controller: titleController,
+                                    ),
+                                    TextField(
+                                      decoration: InputDecoration(labelText: 'Content'),
+                                      controller: contentController,
+                                    ),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      editNote(note['id'], titleController.text, contentController.text);
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text('Save'),
                                   ),
                                 ],
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    editNote(note['id'], titleController.text, contentController.text);
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: Text('Save'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.delete),
-                      onPressed: () {
-                        deleteNote(note['id'].toString());
-                      },
-                    ),
-                  ],
+                              );
+                            },
+                          );
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          deleteNote(note['id'].toString());
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
